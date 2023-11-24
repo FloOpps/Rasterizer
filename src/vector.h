@@ -16,6 +16,9 @@ class Vector{
         //Default constructor
         Vector() : vect(N,T(0)){}
 
+        //constructor with NAN
+        Vector(double p) : vect(N,T(p)){}
+
         //pass an initialization list of elements in arguments of the constructor
         Vector(std::initializer_list<T> param){
             if(param.size()>N){ //more than N arguments, exception
@@ -80,6 +83,7 @@ class Vector{
         }
 };
 
+    //cross product : vector indicates magnitude and direction
     template<class T, unsigned N>
     Vector<T,N> cross(const Vector<T,N> &vector1, const Vector<T,N> &vector2 ){
         if(vector1.vect.size()<3 || vector2.vect.size()<3){
@@ -92,7 +96,7 @@ class Vector{
         return tmp;
      }
 
-    //dot product
+    //dot product : scalar indicates magnitude but not direction
     template<class T, unsigned N>
     T dot(const Vector<T,N> &vector1, const Vector<T,N> &vector2 ){
         size_t vect1Size = vector1.vect.size();
@@ -109,11 +113,12 @@ class Vector{
      template<class T, unsigned N>
      bool isnan(const Vector<T,N> &v){
         for(const T &elem:v.vect){
-            if(std::isnan(elem)) return true; //ajout de 0 ou non?
+            if(std::isnan(elem)) return true; //maybe to rework?
         }
         return false;
      }
 
+    //checking if a vector is unitary
      template<class T, unsigned N>
      bool is_unit(const Vector<T,N> &v){
         T sum = T(0);
@@ -124,14 +129,13 @@ class Vector{
         else return true;
      }
 
+    //checking if the norm of 2 vectors is nearly equal using a tolerence threshold
     template<class T, unsigned N>
     bool nearly_equal(const Vector<T,N> &v1, const Vector<T,N> &v2){
-        size_t size=v1.vect.size();
-        if(size!=v2.vect.size()) return false;
-        for(int i=0;i<size;i++){
-            if(std::abs(v1.vect[i] - v2.vect[i]) > std::numeric_limits<float>::epsilon()) return false;
-        }
-        return true;
+        T normV1 = v1.norm();
+        T normV2 = v2.norm();
+        T percentage = normV1>normV2?((normV1-normV2)/normV1):((normV2-normV1)/normV2);
+        return percentage<0.05;
     }
 
     template<class T, unsigned N>
@@ -150,14 +154,12 @@ class Vector{
         return true;
     }
 
-    //ne pas utiliser les .size() mais les N
-
     template<class T, unsigned N>
     std::ostream &operator<<(std::ostream &out, const Vector<T,N> &v){
         out << "(";
         for(int i=0;i<N;i++){
             if(i==N-1) out << v[i];
-            else out << v[i] << " ; "; //voir si on doit afficher 1 ou 1.0
+            else out << v[i] << " ; ";
         }
         out << ")";
         return out;
@@ -165,7 +167,6 @@ class Vector{
 
     template<class T,unsigned N>
     Vector<T,N> operator+(const Vector<T,N> &v, const Vector<T,N> &v2){
-        //voir si faut faire verif de taille ou pas la peine grace au N
         Vector<T,N> tmp;
         for(int i=0;i<N;i++){
             tmp.vect[i]=v[i]+v2[i];
@@ -218,6 +219,7 @@ class Vector{
         return tmp;
     }
 
+    //to string a vector
     template<class T, unsigned N>
     std::string to_string(const Vector<T,N> &v){
         std::string tmp = "";
@@ -227,6 +229,7 @@ class Vector{
         return tmp.erase(tmp.size() -1, 1);
     }
 
+    //normalize a vector
     template<class T,unsigned N>
     Vector<T,N> unit_vector(const Vector<T,N> &v){
         T size = v.norm();

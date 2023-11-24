@@ -15,10 +15,9 @@ int main(){
     Matrix<float,2,2> m(vectVect);
     Matrix<float,2,2> m2(vectVect2);
 
-    Matrix<float,2,2> v = m*m2;
-    std::cout << to_string(m);
+    Matrix<float,2,2> inv = inverse(m);
+    std::cout << to_string(inv*m);
     cout << endl;
-    cout << transpose(m);
 
 
     return 0;
