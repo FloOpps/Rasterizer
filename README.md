@@ -4,6 +4,7 @@ Rasterizer
 
 UN README en pdf est également fournit, si possible lire le pdf car photo explicative avec.
 
+Projet réalisé dans une VM "Oracle VM VirtualBox" avec Ubuntu 64 bits (Ubuntu 23.10 mantic).
 
 Implémenté:
 
