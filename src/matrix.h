@@ -1,3 +1,6 @@
+#ifndef ALINE_MATRIX_H
+#define ALINE_MATRIX_H
+
 #include "vector.h"
 #include <vector>
 #include <initializer_list>
@@ -7,6 +10,7 @@
 
 using namespace std;
 
+namespace aline{
 //M lines per N columns
 //A Vector represents one row in the matrix, all is elements is the number of columns
 template<class T, unsigned M, unsigned N>
@@ -14,19 +18,23 @@ class Matrix{
     public:
         std::vector<Vector<T,N>> matrix;
     
-    public:
-
         //default constructor for a matrix filled up with zeros, calling the Vector default constuctor
         Matrix() : matrix(M, Vector<T,N>()){}
 
         //constructor filled of the paramater
-        Matrix(double p) : matrix(M, Vector<T,N>(p)){}
+        Matrix(T p) : matrix(M, Vector<T,N>(p)){}
 
         //Constructs a matrix with the vectors given as arguments. Each vector is one line of
         //the matrix
         Matrix(std::initializer_list<Vector<T,N>> listVector){
             for(const Vector<T,N> &elem : listVector){
                 matrix.push_back(elem);
+            }
+            if(listVector.size()<M){
+                unsigned int reste = M-listVector.size();
+                for(unsigned int i = 0; i<reste; i++){
+                    matrix.push_back(Vector<T,N>());
+                }
             }
         }
 
@@ -38,7 +46,7 @@ class Matrix{
         }
 
         //get row
-        Vector<T,N> at(size_t index) const{
+        const Vector<T,N> &at(size_t index) const{
             if(index>=M) throw std::runtime_error("Index of the row is out of range");
             return matrix[index];
         }
@@ -66,8 +74,8 @@ class Matrix{
         }
 
         Matrix<T,M,N> &operator+=(const Matrix<T,M,N> &m){
-            for(int row=0;row<M;row++){
-                for(int column=0; column<N; column++){
+            for(unsigned int  row=0;row<M;row++){
+                for(unsigned int  column=0; column<N; column++){
                     matrix[row][column]+=m.matrix[row][column];
                 }
             }
@@ -79,8 +87,8 @@ class Matrix{
 //cheacking if the matrix is equal to its identity
 template<class T, unsigned M>
 bool identity(const Matrix<T,M,M> &m){
-    for(int row=0;row<M;row++){
-        for(int column=0;column<M;column++){
+    for(unsigned int  row=0;row<M;row++){
+        for(unsigned int  column=0;column<M;column++){
             if(row==column && m.matrix[row][column]!=1) return false;
             else if(row!=column && m.matrix[row][column]!=0) return false;
         }
@@ -113,9 +121,9 @@ T matrixPartition(const Matrix<T,M,N> &m, int rowToDelete, int columnToDelete){
     Matrix<T,M-1,N-1> tmpMatrix;
     unsigned rowTmp=0; //rowTmp is the variable for the tmp matrix
     unsigned columnTmp=0; //column is the variable for the tmp matrix
-    for(int row=0;row<M;row++){
+    for(unsigned int row=0;row<M;row++){
         if(row!=rowToDelete){
-            for(int column=0;column<N;column++){
+            for(unsigned int column=0;column<N;column++){
                 if(column!=columnToDelete){
                     tmpMatrix.matrix[rowTmp][columnTmp] = m.matrix[row][column];
                     columnTmp++;
@@ -132,8 +140,8 @@ T matrixPartition(const Matrix<T,M,N> &m, int rowToDelete, int columnToDelete){
 template<class T, unsigned M, unsigned N>
 Matrix<T,M,N> adjacent(const Matrix<T,M,N> &m){ //ou cofacteur?
     Matrix<T,M,N> tmp;
-    for(int row=0;row<M;row++){
-        for(int column=0;column<N;column++){
+    for(unsigned int row=0;row<M;row++){
+        for(unsigned int column=0;column<N;column++){
             tmp[row][column] = pow(-1,row+column)*matrixPartition(m,row,column);
         }
     }
@@ -167,8 +175,8 @@ bool isnan(const Matrix<T,M,N> &m){
 //test if two matrix are equals
 template<class T, unsigned M, unsigned N>
 bool operator==(const Matrix<T,M,N> &m,const Matrix<T,M,N> &m2){
-    for(int row=0; row<M; row++){
-        for(int column=0;column<N;column++){
+    for(unsigned int row=0; row<M; row++){
+        for(unsigned int column=0;column<N;column++){
             if(m.matrix[row][column]!=m2.matrix[row][column]) return false;
         }
     }
@@ -185,7 +193,7 @@ bool operator!=(const Matrix<T,M,N> &m,const Matrix<T,M,N> &m2){
 template<class T, unsigned M, unsigned N>
 ostream &operator<<(ostream &out, const Matrix<T,M,N> &m){
     out << "[";
-    for(int i=0; i<M; i++){
+    for(unsigned int i=0; i<M; i++){
         out << m.matrix[i];
         if(i!=M-1) out << endl;
     }
@@ -196,8 +204,8 @@ ostream &operator<<(ostream &out, const Matrix<T,M,N> &m){
 template<class T, unsigned M, unsigned N>
 Matrix<T,M,N> operator+(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
     Matrix<T,M,N> tmp;
-    for(int row=0;row<M;row++){
-        for(int column=0;column<N;column++){
+    for(unsigned int row=0;row<M;row++){
+        for(unsigned int column=0;column<N;column++){
             tmp.matrix[row][column] = m.matrix[row][column] + m2.matrix[row][column];
         }
     }
@@ -218,8 +226,8 @@ Matrix<T,M,N> operator-(const Matrix<T,M,N> &m){
 template<class T, unsigned M, unsigned N>
 Matrix<T,M,N> operator-(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
     Matrix<T,M,N> tmp;
-    for(int row = 0; row<M; row++){
-        for(int column=0;column<N;column++){
+    for(unsigned int row = 0; row<M; row++){
+        for(unsigned int column=0;column<N;column++){
             tmp.matrix[row][column] = m.matrix[row][column] - m2.matrix[row][column];
         }
     }
@@ -230,8 +238,8 @@ Matrix<T,M,N> operator-(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
 template<class T, unsigned M, unsigned N>
 Matrix<T,M,N> operator*(const T &scalaire, const Matrix<T,M,N> &m){
     Matrix<T,M,N> tmp;
-    for(int row = 0; row<M; row++){
-        for(int column=0;column<N;column++){
+    for(unsigned int row = 0; row<M; row++){
+        for(unsigned int column=0;column<N;column++){
             tmp.matrix[row][column] = scalaire * m.matrix[row][column];
         }
     }
@@ -246,10 +254,10 @@ Matrix<T,M,N> operator*(const Matrix<T,M,N> &m, const T &scalaire){
 
 //the product of a matrix and a vector
 template<class T, unsigned M, unsigned N>
-Vector<T,N> operator*(const Matrix<T,M,N> &m, const Vector<T,N> &v){
-    Vector<T,N> tmpVector;
-    for(int row=0;row<M;row++){
-        for(int column=0;column<N;column++){
+Vector<T,M> operator*(const Matrix<T,M,N> &m, const Vector<T,N> &v){
+    Vector<T,M> tmpVector;
+    for(unsigned int row=0;row<M;row++){
+        for(unsigned int column=0;column<N;column++){
             tmpVector.vect[row] += m.matrix[row][column]*v.vect[column];
         }
     }
@@ -257,12 +265,15 @@ Vector<T,N> operator*(const Matrix<T,M,N> &m, const Vector<T,N> &v){
 }
 
 //the product of two matrix
-template<class T, unsigned M, unsigned N>
-Matrix<T,M,N> operator*(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
-    Matrix<T,M,N> tmpMatrix;
-    for(int row=0;row<M;row++){
-        for(int column=0;column<N;column++){
-            for(int columnProd=0;columnProd<N;columnProd++){
+//nbr column 1ere == nbr ligne 2eme
+template<class T, unsigned M, unsigned N, unsigned O>
+Matrix<T,M,O> operator*(const Matrix<T,M,N> &m, const Matrix<T,N,O> &m2){
+
+    Matrix<T,M,O> tmpMatrix;
+
+    for(unsigned int row=0;row<M;row++){
+        for(unsigned int column=0;column<O;column++){
+            for(unsigned int columnProd=0;columnProd<N;columnProd++){
                 tmpMatrix.matrix[row][column] += (m.matrix[row][columnProd]*m2.matrix[columnProd][column]);
             }
         }
@@ -270,25 +281,44 @@ Matrix<T,M,N> operator*(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
     return tmpMatrix;
 }
 
+template<class T, unsigned M, unsigned N>
+Matrix<T,M,N> operator/(const Matrix<T,M,N> &m,const T &e){
+    return m*(1/e);
+}
+
 //to string a matrix
 template<class T, unsigned M, unsigned N>
     std::string to_string(const Matrix<T,M,N> &m){
-        std::string tmp = "[";
+        std::string tmp = "(";
         for(const Vector<T,N> &elem: m.matrix){
-            tmp += to_string(elem) + "\n";
+            tmp += to_string(elem) + ", ";
         }
-        tmp.erase(tmp.size() -1, 1);
-        return tmp += "]";
+        tmp.erase(tmp.size() -2, 2);
+        return tmp += ")";
     }
 
 //computing the transpose of a matrix
  template<class T, unsigned M, unsigned N>
     Matrix<T,M,N> transpose(const Matrix<T,M,N> &m){
         Matrix<T,N,M> tmp;
-        for(int row=0; row<M; row++){
-            for(int column=0;column<N;column++){
+        for(unsigned int row=0; row<M; row++){
+            for(unsigned int column=0;column<N;column++){
                 tmp[column][row] = m.matrix[row][column];
             }
         }
         return tmp;
     }
+
+    //nearly equal 2 matrix
+    template<class T,unsigned M,unsigned N>
+    bool nearly_equal(const Matrix<T,M,N> &m, const Matrix<T,M,N> &m2){
+        for(unsigned int row=0;row<M;row++){
+            for(unsigned int column=0;column<N;column++){
+                if(!nearly_equal(m[row][column],m2[row][column])) return false;
+            }
+        }
+        return true;
+    }
+}
+
+#endif

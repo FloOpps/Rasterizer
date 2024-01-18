@@ -1,3 +1,6 @@
+#ifndef ALINE_VECTOR_H
+#define ALINE_VECTOR_H
+
 #include<vector>
 #include <initializer_list>
 #include <stdexcept>
@@ -7,11 +10,20 @@
 using namespace std;
 
 
+
+namespace aline{
+
+// Define uint as an alias for unsigned int
+using uint = unsigned int;
+
+// Define real as an alias for double
+using real = double;
+
 //T type and N elements
 template<class T,unsigned N>
 class Vector{
     public:
-        std::vector<T> vect;
+        std::vector<T> vect; //better to use array
 
         //Default constructor
         Vector() : vect(N,T(0)){}
@@ -24,12 +36,12 @@ class Vector{
             if(param.size()>N){ //more than N arguments, exception
                 throw std::runtime_error("Size exceeds N");
             }
-            else if(param.size()<N){ //less than N arguments, default values
-                vect = std::vector<T>(N,T(0));
-            }
-            else{
+            else{ //less or equal than N arguments, default values
                 for(typename std::initializer_list<T>::const_iterator it=param.begin(); it!=param.end(); it++){
                     vect.push_back(*it);
+                }
+                for(unsigned int i=param.size(); i<N; i++){
+                    vect.push_back((T)0);
                 }
             }
         }
@@ -42,8 +54,8 @@ class Vector{
 
         //Get value at the index gived in arguments
         T at(size_t index) const{
-            if(index > vect.size()-1){
-                throw std::runtime_error("Index out of range");
+            if(index >= vect.size()){
+                throw runtime_error("Index out of range");
             }
             return vect.at(index);
         }
@@ -62,7 +74,7 @@ class Vector{
             if(vect.size()!=v.vect.size()){ //peut etre pas obligé de le mettre vu que v1+=v2 compile pas si N pas le meme
                 throw std::runtime_error("The Vectors need to have the same size");
             }
-            for(int i=0; i<vect.size();i++){
+            for(long unsigned int i=0; i<vect.size();i++){
                 vect[i]+=v.vect[i];
             }
             return *this;
@@ -79,9 +91,23 @@ class Vector{
 
         //square of the norm (magnitude)
         T sq_norm() const{
-            return norm()*norm();
+            return norm()*norm(); //c la norm avant racine carré donc faire en sorte de l'avoir avant
+        }
+
+        //adding this for vertex (explicit copy)
+        Vector<T,N> operator=(const Vector<T,N> &v2){
+            for(long unsigned int i=0;i<N;i++){
+                vect[i] = v2.vect[i];
+            }
+            return *this;
         }
 };
+
+    //vector is norm (size of the vector)
+    template<class T, unsigned N>
+    T norm(const Vector<T,N> &v){
+        return v.norm();
+    }
 
     //cross product : vector indicates magnitude and direction
     template<class T, unsigned N>
@@ -104,7 +130,7 @@ class Vector{
             throw std::runtime_error("The Vectors need to have the same size");
         }
         T dot = (T)0;
-        for(int i=0; i<vect1Size;i++){
+        for(long unsigned int i=0; i<vect1Size;i++){
             dot+=(vector1[i]*vector2[i]);
         }
         return dot;
@@ -118,31 +144,41 @@ class Vector{
         return false;
      }
 
+    //checking if the norm of 2 T is nearly equal using a tolerence threshold
+    template<class T>
+    bool nearly_equal(T n1, T n2){
+        bool tmp;
+        const float epsilon = std::numeric_limits<float>::epsilon();
+        if(n1==n2) return true;
+
+        tmp = n1>n2?((n1-n2)<abs(n1)*epsilon):((n2-n1)<abs(n2)*epsilon);
+        return tmp;
+        
+    }
+
+    //checking if the norm of 2 vectors is nearly equal using a tolerence threshold
+    //difference de A et B < pourcentage de A (A*p) p =pourcentage %
+    template<class T, unsigned N>
+    bool nearly_equal(const Vector<T,N> &v1, const Vector<T,N> &v2){
+        for(unsigned int i=0;i<N;i++){
+            if(!nearly_equal(v1.vect[i],v2.vect[i])) return false;
+        }
+        return true;
+    }
+
     //checking if a vector is unitary
      template<class T, unsigned N>
      bool is_unit(const Vector<T,N> &v){
-        T sum = T(0);
-        for(const T &elem : v.vect){
-            sum+=(elem*elem);
-        }
-        if(std::sqrt(sum)!=T(1)) return false;
-        else return true;
+        return nearly_equal((T)v.norm(),(T)1);
      }
 
-    //checking if the norm of 2 vectors is nearly equal using a tolerence threshold
-    template<class T, unsigned N>
-    bool nearly_equal(const Vector<T,N> &v1, const Vector<T,N> &v2){
-        T normV1 = v1.norm();
-        T normV2 = v2.norm();
-        T percentage = normV1>normV2?((normV1-normV2)/normV1):((normV2-normV1)/normV2);
-        return percentage<0.05;
-    }
+   
 
     template<class T, unsigned N>
     bool operator==(const Vector<T,N> &v1, const Vector<T,N> &v2){
         size_t size= v1.vect.size();
         if(size!=v2.vect.size()) return false;
-        for(int i=0;i<size;i++){
+        for(long unsigned int i=0;i<size;i++){
             if(v1.vect[i]!=v2.vect[i]) return false;
         }
         return true;
@@ -157,7 +193,7 @@ class Vector{
     template<class T, unsigned N>
     std::ostream &operator<<(std::ostream &out, const Vector<T,N> &v){
         out << "(";
-        for(int i=0;i<N;i++){
+        for(unsigned int i=0;i<N;i++){
             if(i==N-1) out << v[i];
             else out << v[i] << " ; ";
         }
@@ -168,7 +204,7 @@ class Vector{
     template<class T,unsigned N>
     Vector<T,N> operator+(const Vector<T,N> &v, const Vector<T,N> &v2){
         Vector<T,N> tmp;
-        for(int i=0;i<N;i++){
+        for(unsigned int i=0;i<N;i++){
             tmp.vect[i]=v[i]+v2[i];
         }
         return tmp;
@@ -186,7 +222,7 @@ class Vector{
     template<class T,unsigned N>
     Vector<T,N> operator-(const Vector<T,N> &v, const Vector<T,N> &v2){
         Vector<T,N> tmp;
-        for(int i=0; i<N;i++){
+        for(unsigned int i=0; i<N;i++){
             tmp[i] = v[i] - v2[i];
         }
         return tmp;
@@ -222,11 +258,11 @@ class Vector{
     //to string a vector
     template<class T, unsigned N>
     std::string to_string(const Vector<T,N> &v){
-        std::string tmp = "";
+        std::string tmp = "(";
         for(const T &elem: v.vect){
-            tmp += std::to_string(elem) + " ";
+            tmp += std::to_string(elem) + ", ";
         }
-        return tmp.erase(tmp.size() -1, 1);
+        return tmp.erase(tmp.size() -2, 2)+")";
     }
 
     //normalize a vector
@@ -239,3 +275,18 @@ class Vector{
         }
         return tmp;
     }
+
+    // Define Vec2i as an alias for Vector<int, 2>
+    using Vec2i = Vector<int, 2>;
+
+    // Define Vec2r as an alias for Vector<real, 2>
+    using Vec2r = Vector<real, 2>;
+
+    // Define Vec3r as an alias for Vector<real, 3>
+    using Vec3r = Vector<real, 3>;
+
+    // Define Vec4r as an alias for Vector<real, 4>
+    using Vec4r = Vector<real, 4>;
+}
+
+#endif
